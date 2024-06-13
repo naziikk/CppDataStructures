@@ -1,0 +1,3 @@
+/Users/nazarzakrevskij/CLionProjects/untitled22/cmake-build-debug/CMakeFiles/untitled22.dir
+/Users/nazarzakrevskij/CLionProjects/untitled22/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/nazarzakrevskij/CLionProjects/untitled22/cmake-build-debug/CMakeFiles/rebuild_cache.dir
