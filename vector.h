@@ -1,4 +1,3 @@
-#pragma once
 #ifndef UNTITLED22_VECTOR_H
 #define UNTITLED22_VECTOR_H
 #include <iostream>
@@ -23,21 +22,7 @@ class Vector {
   using ReverseIterator = std::reverse_iterator<Iterator>;
   using ConstReverseIterator = std::reverse_iterator<ConstIterator>;
   Vector() : size_(0), capacity_(0), data_(nullptr) {}
-  Pointer Allocate(SizeType n) {
-    if (n == 0) {
-      return nullptr;
-    }
-    return static_cast<Pointer>(operator new(n * sizeof(T)));
-  }
-  void Deallocate(Pointer p) {
-    if (p) {
-      operator delete(p);
-    }
-  }
-  explicit Vector(SizeType size) {
-    size_ = size;
-    capacity_ = size;
-    data_ = size ? new T[size] : nullptr;
+  explicit Vector(SizeType size) : size_(size), capacity_(size), data_(size ? new T[size] : nullptr) {
     for (SizeType i = 0; i < size_; ++i) {
       data_[i] = T();
     }
@@ -48,7 +33,7 @@ class Vector {
         data_[i] = value;
       }
     } catch (...) {
-      Clear();
+      delete[] data_;
       throw;
     }
   }
@@ -75,7 +60,7 @@ class Vector {
       try {
         data_[i] = arr.data_[i];
       } catch (...) {
-        Clear();
+        delete[] data_;
         throw;
       }
     }
@@ -94,7 +79,7 @@ class Vector {
   }
   Vector& operator=(Vector&& arr) noexcept {
     if (this != &arr) {
-      Clear();
+      delete[] data_;
       size_ = arr.size_;
       capacity_ = arr.capacity_;
       data_ = arr.data_;
@@ -105,15 +90,9 @@ class Vector {
     return *this;
   }
   Reference operator[](SizeType idx) {
-    if (idx >= size_) {
-      throw std::out_of_range("");
-    }
     return data_[idx];
   }
   ConstReference operator[](SizeType idx) const {
-    if (idx >= size_) {
-      throw std::out_of_range("");
-    }
     return data_[idx];
   }
   Reference At(SizeType idx) {
@@ -129,15 +108,9 @@ class Vector {
     return data_[idx];
   }
   Reference Front() {
-    if (size_ == 0) {
-      throw std::out_of_range("");
-    }
     return data_[0];
   }
   ConstReference Front() const {
-    if (size_ == 0) {
-      throw std::out_of_range("");
-    }
     return data_[0];
   }
   Reference Back() {
@@ -147,9 +120,6 @@ class Vector {
     return data_[size_ - 1];
   }
   ConstReference Back() const {
-    if (size_ == 0) {
-      throw std::out_of_range("");
-    }
     return data_[size_ - 1];
   }
   Pointer Data() {
@@ -158,87 +128,69 @@ class Vector {
   ConstPointer Data() const {
     return data_;
   }
-  SizeType Size() const {
+  [[nodiscard]] SizeType Size() const {
     return size_;
   }
-  SizeType Capacity() const {
+  [[nodiscard]] SizeType Capacity() const {
     return capacity_;
   }
-  bool Empty() const {
+  [[nodiscard]] bool Empty() const {
     return size_ == 0;
   }
   void Swap(Vector& arr) noexcept {
-    try {
-      std::swap(size_, arr.size_);
-      std::swap(capacity_, arr.capacity_);
-      std::swap(data_, arr.data_);
-    } catch (...) {
-      Clear();
-      throw;
-    }
+    std::swap(size_, arr.size_);
+    std::swap(capacity_, arr.capacity_);
+    std::swap(data_, arr.data_);
   }
   void Resize(SizeType new_size) {
-    try {
-      if (new_size <= capacity_) {
-        for (SizeType i = size_; i < new_size; ++i) {
-          data_[i] = T();
-        }
-        size_ = new_size;
-        return;
-      }
-      Reserve(new_size);
+    if (new_size <= capacity_) {
       for (SizeType i = size_; i < new_size; ++i) {
         data_[i] = T();
       }
       size_ = new_size;
-    } catch (const std::bad_alloc&) {
-      throw;
+      return;
     }
+    auto new_data = new T[new_size];
+    for (SizeType i = 0; i < size_; ++i) {
+      new_data[i] = std::move(data_[i]);
+    }
+    for (SizeType i = size_; i < new_size; ++i) {
+      new_data[i] = T();
+    }
+    delete[] data_;
+    data_ = new_data;
+    size_ = new_size;
+    capacity_ = new_size;
   }
   void Resize(SizeType new_size, const ValueType& value) {
-    SizeType old_size = size_;
-    SizeType old_capacity = capacity_;
-    auto old_data = data_;
-    try {
-      if (new_size <= capacity_) {
-        for (SizeType i = size_; i < new_size; ++i) {
-          data_[i] = value;
-        }
-        size_ = new_size;
-        return;
-      }
-      Reserve(new_size);
+    if (new_size <= capacity_) {
       for (SizeType i = size_; i < new_size; ++i) {
         data_[i] = value;
       }
       size_ = new_size;
-    } catch (...) {
-      Clear();
-      size_ = old_size;
-      capacity_ = old_capacity;
-      data_ = old_data;
-      throw;
+      return;
     }
+    auto new_data = new T[new_size];
+    for (SizeType i = 0; i < size_; ++i) {
+      new_data[i] = std::move(data_[i]);
+    }
+    for (SizeType i = size_; i < new_size; ++i) {
+      new_data[i] = value;
+    }
+    delete[] data_;
+    data_ = new_data;
+    size_ = new_size;
+    capacity_ = new_size;
   }
   void ShrinkToFit() {
-    try {
-      if (capacity_ > size_) {
-        T* cur = new T[size_];
-        for (SizeType i = 0; i < size_; ++i) {
-          cur[i] = std::move(data_[i]);
-        }
-        delete[] data_;
-        if (size_ == 0) {
-          data_ = nullptr;
-        }
-        else {
-          data_ = cur;
-        }
-        capacity_ = size_;
+    if (capacity_ > size_) {
+      Pointer new_data = size_ ? new T[size_] : nullptr;
+      for (SizeType i = 0; i < size_; ++i) {
+        new_data[i] = std::move(data_[i]);
       }
-    } catch (const std::bad_alloc&) {
-      Clear();
-      throw;
+      delete[] data_;
+      data_ = new_data;
+      capacity_ = size_;
     }
   }
   void Clear() noexcept {
@@ -249,14 +201,9 @@ class Vector {
   void Reserve(SizeType new_cap) {
     if (new_cap > capacity_) {
       T* temp = nullptr;
-      try {
-        temp = new T[new_cap];
-        for (SizeType i = 0; i < size_; ++i) {
-          temp[i] = std::move(data_[i]);
-        }
-      } catch (...) {
-        delete[] temp;
-        throw;
+      temp = new T[new_cap];
+      for (SizeType i = 0; i < size_; ++i) {
+        temp[i] = std::move(data_[i]);
       }
       delete[] data_;
       data_ = temp;

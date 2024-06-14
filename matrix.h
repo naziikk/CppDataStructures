@@ -224,8 +224,8 @@ T Determinant(Matrix<T, N, N>& matrix) {
       if (cur == N) {
         return 0;
       }
-      for (int x = 0; x < temp[i].size(); x++) {
-        std::swap(temp(i,x), temp(cur, x));
+      for (size_t j = 0; j < N; ++j) {
+        std::swap(temp(i, j), temp(cur, j));
       }
       det = -det;
     }
@@ -240,5 +240,63 @@ T Determinant(Matrix<T, N, N>& matrix) {
     det *= temp(i, i);
   }
   return det;
+}
+template <class T, size_t N>
+Matrix<T, N-1, N-1> Minor(const Matrix<T, N, N>& matrix, size_t row, size_t col) {
+  Matrix<T, N-1, N-1> minor;
+  size_t r = 0, c = 0;
+  for (size_t i = 0; i < N; ++i) {
+    if (i == row) continue;
+    for (size_t j = 0; j < N; ++j) {
+      if (j == col) continue;
+      minor(r, c++) = matrix(i, j);
+      if (c == N - 1) {
+        c = 0;
+        ++r;
+      }
+    }
+  }
+  return minor;
+}
+
+// Вычисление союзной матрицы
+template <class T, size_t N>
+Matrix<T, N, N> Adjoint(const Matrix<T, N, N>& matrix) {
+
+  Matrix<T, N, N> adj;
+
+  int sign = 1;
+  for (size_t i = 0; i < N; ++i) {
+    for (size_t j = 0; j < N; ++j) {
+      Matrix<T, N-1, N-1> minor = Minor(matrix, i, j);
+      adj(j, i) = sign * Determinant(minor);
+      sign = -sign;
+    }
+    if (N % 2 == 0) {
+      sign = -sign;
+    }
+  }
+
+  return adj;
+}
+
+// Получение обратной матрицы
+template <class T, size_t N>
+Matrix<T, N, N> GetInversed(const Matrix<T, N, N>& matrix) {
+  T det = Determinant(matrix);
+  if (det == 0) {
+    throw MatrixIsDegenerateError();
+  }
+
+  Matrix<T, N, N> adj = Adjoint(matrix);
+  Matrix<T, N, N> inversed;
+
+  for (size_t i = 0; i < N; ++i) {
+    for (size_t j = 0; j < N; ++j) {
+      inversed(i, j) = adj(i, j) / det;
+    }
+  }
+
+  return inversed;
 }
 #endif  // UNTITLED22_MATRIX_H
