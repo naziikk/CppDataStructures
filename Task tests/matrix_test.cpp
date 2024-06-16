@@ -349,7 +349,10 @@ TEST_CASE("Determinant", "[MatrixMethods]") {
     Matrix<int, 3, 3> matrix{-1, 4, 9, 2, 5, -7, 0, 2, 0};
     REQUIRE(Determinant(matrix) == 22);
   }
-
+  {
+    Matrix<int, 3, 3> matrix{1, 2, 3, 2, 4, 6, 0, 2, 0};
+    REQUIRE(Determinant(matrix) == 0);
+  }
   {
     Matrix<Rational, 3, 3> matrix{Rational{1},    Rational{1, 2}, Rational{1, 3}, Rational{1, 4}, Rational{1, 5},
                                   Rational{1, 6}, Rational{1, 7}, Rational{1, 8}, Rational{1, 9}};
@@ -357,38 +360,38 @@ TEST_CASE("Determinant", "[MatrixMethods]") {
   }
 }
 
-//TEST_CASE("Inverse", "[MatrixMethods]") {
-//  {
-//    Matrix<Rational, 1, 1> matrix{3};
-//    Inverse(matrix);
-//    EqualMatrix(matrix, std::array<std::array<Rational, 1>, 1>{Rational{1, 3}});
-//  }
-//
-//  {
-//    Matrix<Rational, 2, 2> matrix{-1, 4, 9, 2};
-//    Inverse(matrix);
-//    EqualMatrix(matrix, std::array<std::array<Rational, 2>, 2>{Rational{-1, 19}, Rational{2, 19}, Rational{9, 38},
-//                                                               Rational{1, 38}});
-//  }
-//
-//  {
-//    Matrix<Rational, 3, 3> matrix{-1, 4, 9, 2, 5, -7, 0, 2, 0};
-//    Inverse(matrix);
-//    EqualMatrix(matrix, std::array<std::array<Rational, 3>, 3>{Rational{7, 11}, Rational{9, 11}, Rational{-73, 22},
-//                                                               Rational{0}, Rational{0}, Rational{1, 2},
-//                                                               Rational{2, 11}, Rational{1, 11}, Rational{-13, 22}});
-//  }
-//
-//  {
-//    Matrix<Rational, 3, 3> matrix{Rational{1},    Rational{1, 2}, Rational{1, 3}, Rational{1, 4}, Rational{1, 5},
-//                                  Rational{1, 6}, Rational{1, 7}, Rational{1, 8}, Rational{1, 9}};
-//    Inverse(matrix);
-//    EqualMatrix(matrix, std::array<std::array<Rational, 3>, 3>{Rational{14, 3}, Rational{-140, 3}, Rational{56},
-//                                                               Rational{-40, 3}, Rational{640, 3}, Rational{-280},
-//                                                               Rational{9}, Rational{-180}, Rational{252}});
-//  }
-//}
-//
+TEST_CASE("Inverse", "[MatrixMethods]") {
+  {
+    Matrix<Rational, 1, 1> matrix{3};
+    Inverse(matrix);
+    EqualMatrix(matrix, std::array<std::array<Rational, 1>, 1>{Rational{1, 3}});
+  }
+
+  {
+    Matrix<Rational, 2, 2> matrix{-1, 4, 9, 2};
+    Inverse(matrix);
+    EqualMatrix(matrix, std::array<std::array<Rational, 2>, 2>{Rational{-1, 19}, Rational{2, 19}, Rational{9, 38},
+                                                               Rational{1, 38}});
+  }
+
+  {
+    Matrix<Rational, 3, 3> matrix{-1, 4, 9, 2, 5, -7, 0, 2, 0};
+    Inverse(matrix);
+    EqualMatrix(matrix, std::array<std::array<Rational, 3>, 3>{Rational{7, 11}, Rational{9, 11}, Rational{-73, 22},
+                                                               Rational{0}, Rational{0}, Rational{1, 2},
+                                                               Rational{2, 11}, Rational{1, 11}, Rational{-13, 22}});
+  }
+
+  {
+    Matrix<Rational, 3, 3> matrix{Rational{1},    Rational{1, 2}, Rational{1, 3}, Rational{1, 4}, Rational{1, 5},
+                                  Rational{1, 6}, Rational{1, 7}, Rational{1, 8}, Rational{1, 9}};
+    Inverse(matrix);
+    EqualMatrix(matrix, std::array<std::array<Rational, 3>, 3>{Rational{14, 3}, Rational{-140, 3}, Rational{56},
+                                                               Rational{-40, 3}, Rational{640, 3}, Rational{-280},
+                                                               Rational{9}, Rational{-180}, Rational{252}});
+  }
+}
+
 TEST_CASE("GetInversed", "[MatrixMethods]") {
   {
     Matrix<Rational, 1, 1> matrix{3};

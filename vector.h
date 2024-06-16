@@ -200,17 +200,21 @@ class Vector {
   }
   void Reserve(SizeType new_cap) {
     if (new_cap > capacity_) {
-      T* temp = nullptr;
-      temp = new T[new_cap];
-      for (SizeType i = 0; i < size_; ++i) {
-        temp[i] = std::move(data_[i]);
+      T* temp = new T[new_cap];
+      try {
+        for (SizeType i = 0; i < size_; ++i) {
+          temp[i] = std::move(data_[i]);
+        }
+        delete[] data_;
+        data_ = temp;
+        capacity_ = new_cap;
+      } catch (...) {
+        delete[] temp;
+        throw;
       }
-      delete[] data_;
-      data_ = temp;
-      capacity_ = new_cap;
     }
   }
-  void PushBack(const T& it) {
+  void PushBack(ConstReference it) {
     if (size_ == capacity_) {
       SizeType old_size = size_;
       SizeType old_capacity = capacity_;
@@ -225,8 +229,7 @@ class Vector {
         data_ = old_data;
         throw;
       }
-    }
-    else {
+    } else {
       data_[size_] = it;
       size_++;
     }

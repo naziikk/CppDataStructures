@@ -24,15 +24,6 @@ class Matrix {
   const T &operator()(size_t i, size_t j) const {
     return matrix_[i][j];
   }
-//  Matrix GetInversed() const {
-//    if (Determinant() == 0) {
-//      throw MatrixIsDegenerateError();
-//    }
-//
-//  }
-//  void Inverse() {
-//    *this = GetInversed();
-//  }
   T &At(size_t i, size_t j) {
     if (i >= N || j >= M) {
       throw MatrixOutOfRange();
@@ -212,91 +203,70 @@ T Trace(Matrix<T, N, N>& matrix)  {
   return trace;
 }
 template <class T, size_t N>
-T Determinant(Matrix<T, N, N>& matrix) {
-  Matrix<T, N, N> temp = matrix;
-  T det = 1;
-  for (size_t i = 0; i < N - 1; i++) {
-    if (temp(i, i) == 0) {
-      size_t cur = i + 1;
-      while (cur < N && temp(cur, i) == 0) {
-        ++cur;
-      }
-      if (cur == N) {
-        return 0;
-      }
-      for (size_t j = 0; j < N; ++j) {
-        std::swap(temp(i, j), temp(cur, j));
-      }
-      det = -det;
-    }
-    for (size_t k = i + 1; k < N; k++) {
-      T factor = -temp(k, i) / temp(i, i);
-      for (size_t j = i; j < N; j++) {
-        temp(k, j) += factor * temp(i, j);
-      }
-    }
-  }
+Matrix<T, N - 1, N - 1> GetMinor(const Matrix<T, N, N>& matrix, size_t row, size_t col) {
+  Matrix<T, N - 1, N - 1> minor;
+  size_t r = 0;
+  size_t c = 0;
   for (size_t i = 0; i < N; ++i) {
-    det *= temp(i, i);
-  }
-  return det;
-}
-template <class T, size_t N>
-Matrix<T, N-1, N-1> Minor(const Matrix<T, N, N>& matrix, size_t row, size_t col) {
-  Matrix<T, N-1, N-1> minor;
-  size_t r = 0, c = 0;
-  for (size_t i = 0; i < N; ++i) {
-    if (i == row) continue;
+    if (i == row) {
+      continue;
+    }
     for (size_t j = 0; j < N; ++j) {
-      if (j == col) continue;
-      minor(r, c++) = matrix(i, j);
-      if (c == N - 1) {
-        c = 0;
-        ++r;
+      if (j == col) {
+        continue;
       }
+      minor(r, c++) = matrix(i, j);
     }
+    r++;
+    c = 0;
   }
   return minor;
 }
-
-// Вычисление союзной матрицы
 template <class T, size_t N>
-Matrix<T, N, N> Adjoint(const Matrix<T, N, N>& matrix) {
-
-  Matrix<T, N, N> adj;
-
-  int sign = 1;
-  for (size_t i = 0; i < N; ++i) {
-    for (size_t j = 0; j < N; ++j) {
-      Matrix<T, N-1, N-1> minor = Minor(matrix, i, j);
-      adj(j, i) = sign * Determinant(minor);
-      sign = -sign;
+T Determinant(const Matrix<T, N, N>& matrix) {
+  if constexpr (N == 1) {
+    return matrix(0, 0);
+  } else if constexpr (N > 1) {
+    T det = 0;
+    for (size_t col = 0; col < N; ++col) {
+      Matrix<T, N - 1, N - 1> submatrix = GetMinor(matrix, 0, col);
+      T minor_det = matrix(0, col) * Determinant(submatrix);
+      if (col % 2 == 1) {
+        minor_det = -minor_det;
+      }
+      det += minor_det;
     }
-    if (N % 2 == 0) {
-      sign = -sign;
-    }
+    return det;
   }
-
-  return adj;
 }
-
-// Получение обратной матрицы
 template <class T, size_t N>
 Matrix<T, N, N> GetInversed(const Matrix<T, N, N>& matrix) {
-  T det = Determinant(matrix);
-  if (det == 0) {
-    throw MatrixIsDegenerateError();
-  }
-
-  Matrix<T, N, N> adj = Adjoint(matrix);
-  Matrix<T, N, N> inversed;
-
-  for (size_t i = 0; i < N; ++i) {
-    for (size_t j = 0; j < N; ++j) {
-      inversed(i, j) = adj(i, j) / det;
+  if constexpr (N == 1) {
+    if (matrix(0, 0) == 0) {
+      throw MatrixIsDegenerateError();
     }
+    return Matrix<T, 1, 1>{{static_cast<T>(1) / matrix(0, 0)}};
+  } else {
+    T det = Determinant(matrix);
+    if (det == 0) {
+      throw MatrixIsDegenerateError();
+    }
+    Matrix<T, N, N> inverse;
+    for (size_t i = 0; i < N; ++i) {
+      for (size_t j = 0; j < N; ++j) {
+        T cofactor = Determinant(GetMinor(matrix, i, j));
+        if ((i + j) % 2 == 1) {
+          cofactor = -cofactor;
+        }
+        inverse(j, i) = cofactor / det;
+      }
+    }
+    return inverse;
   }
-
-  return inversed;
 }
+template <class T, size_t Size>
+void Inverse(Matrix<T, Size, Size>& matrix) {
+  matrix = GetInversed(matrix);
+}
+
 #endif  // UNTITLED22_MATRIX_H

@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "../big_integer.h"
-#include "../big_integer.cpp"
+#include "big_integer.cpp"
 
 TEST_CASE("Constructors") {
   std::ostringstream oss;
